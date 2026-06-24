@@ -79,6 +79,44 @@ Outputs:
 public_ip_address = "20.x.x.x"
 ```
 
+## Deploying from Azure Cloud Shell
+
+[Cloud Shell](https://portal.azure.com/#cloudshell/) is already authenticated
+(no `az login`) and ships Terraform + git, so you only need to expose the
+subscription id. Full sequence:
+
+```bash
+# 1. Get the deployment repo
+git clone https://github.com/samusanc/Cloud-1-deployment.git
+cd Cloud-1-deployment
+
+# 2. Subscription (azurerm v4 needs it explicitly; ACC_USER_SUBSCRIPTION also works)
+export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+# 3. Secrets
+cp .env.example .env
+nano .env                      # replace the CHANGE_ME values
+
+# 4. Terraform vars  (git-ignored, so NOT in the clone — create it)
+cat > Deployment/terraform.tfvars <<'EOF'
+location      = "spaincentral"
+address_space = ["10.0.0.0/16"]
+EOF
+
+# 5. RSA SSH key (Cloud Shell may not have one)
+test -f ~/.ssh/id_rsa.pub || ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+
+# 6. Deploy
+bash deploy.sh
+```
+
+Notes:
+- **`terraform.tfvars` is git-ignored**, so it isn't in the clone — step 4 recreates it,
+  or Terraform will prompt for `location`/`address_space`.
+- **Cloud Shell sessions are ephemeral**: exported vars and files outside `$HOME`
+  (clouddrive) are lost on timeout. Re-run the `export` when you return, or add it
+  to `~/.bashrc` to make it persist.
+
 ## Access the deployed VM
 
 ```bash

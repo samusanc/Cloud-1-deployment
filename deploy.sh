@@ -23,9 +23,17 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TF_DIR="$SCRIPT_DIR/Deployment"
 
+# >>> APP REPO <<< cloned locally and (by the VM at boot) deployed.
+# To use Andres' repo instead, swap this URL for:
+#   https://github.com/andresmejiaro/cloud-1.git
+# (also update Deployment/user-data, which is what the VM actually clones)
 APP_REPO_URL="https://github.com/samusanc/cloud-1.git"
 APP_REPO_DIR="$SCRIPT_DIR/cloud-1"
-ENV_FILE="$APP_REPO_DIR/docker/.env"
+
+# Secrets source for the 'env' Terraform var (base64 of a docker .env).
+# Preferred: this repo's own ./.env (gitignored). Fallback: the cloned app repo's.
+DEPLOY_ENV_FILE="$SCRIPT_DIR/.env"
+APP_ENV_FILE="$APP_REPO_DIR/docker/.env"
 
 MODE="${1:-apply}"   # "apply" (default) or "plan"
 
@@ -50,15 +58,20 @@ else
   git clone "$APP_REPO_URL" "$APP_REPO_DIR"
 fi
 
-# ── 2. Encode docker/.env into the Terraform 'env' variable ──────────────────
-if [ -f "$ENV_FILE" ]; then
+# ── 2. Encode the .env into the Terraform 'env' variable ─────────────────────
+if   [ -f "$DEPLOY_ENV_FILE" ]; then ENV_FILE="$DEPLOY_ENV_FILE"
+elif [ -f "$APP_ENV_FILE" ];    then ENV_FILE="$APP_ENV_FILE"
+else ENV_FILE=""
+fi
+
+if [ -n "$ENV_FILE" ]; then
   log "Encoding $ENV_FILE into TF_VAR_env"
   grep -q "CHANGE_ME" "$ENV_FILE" 2>/dev/null && \
     warn "$ENV_FILE still contains CHANGE_ME placeholder secrets — update before a real deploy."
   # Single-line base64 (portable across GNU/BSD base64)
   export TF_VAR_env="$(base64 < "$ENV_FILE" | tr -d '\n')"
 else
-  warn "$ENV_FILE not found. Terraform will require -var 'env=...' or a pre-set TF_VAR_env."
+  warn "No .env found ($DEPLOY_ENV_FILE or $APP_ENV_FILE). Copy .env.example to .env and fill it in."
 fi
 
 # ── 3. Terraform workflow ────────────────────────────────────────────────────

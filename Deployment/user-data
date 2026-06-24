@@ -10,7 +10,10 @@ runcmd:
   - resize2fs /dev/sda1
   - |
     timeout 300 sh -c 'until ping -c 1 github.com; do sleep 2; done'
-    git clone https://github.com/andresmejiaro/cloud-1 /opt/repo
+    # >>> APP REPO <<< the VM clones this at boot and runs its docker/setup.sh.
+    # To deploy Andres' repo instead, swap the URL below for:
+    #   https://github.com/andresmejiaro/cloud-1
+    git clone https://github.com/samusanc/cloud-1 /opt/repo
     echo ${env} | base64 -d > /opt/repo/docker/.env
     if [ -f /opt/repo/docker/setup.sh ]; then
       bash /opt/repo/docker/setup.sh

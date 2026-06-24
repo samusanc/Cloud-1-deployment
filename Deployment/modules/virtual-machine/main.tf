@@ -10,8 +10,10 @@ resource "azurerm_linux_virtual_machine" "this" {
   ]
 
   admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
+    username = "adminuser"
+    # Azure's admin_ssh_key requires an RSA key. Terraform's file() does NOT
+    # expand "~", so pathexpand() is needed or the plan fails to find the file.
+    public_key = file(pathexpand("~/.ssh/id_rsa.pub"))
   }
 
   os_disk {

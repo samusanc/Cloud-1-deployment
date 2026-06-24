@@ -168,6 +168,17 @@ Change both to keep them consistent.
         └── NSG/  NSG_Asociation/
 ```
 
+## Troubleshooting
+
+- **`plan` hangs, then errors on "ensuring Resource Providers are registered"
+  (`context canceled` after Ctrl+C):** the provider was trying to auto-register
+  Azure resource providers, which is slow and often not permitted on Cloud Shell /
+  restricted subscriptions. Already handled — `providers.tf` sets
+  `resource_provider_registrations = "none"`. If `apply` later says a specific
+  provider isn't registered, register it once: `az provider register --namespace Microsoft.Network --wait`.
+- **`terraform plan` → "No configuration files":** run it from inside `Deployment/`
+  (the `.tf` files live there). `deploy.sh` handles this for you.
+
 ## Known limitations / hardening TODO
 
 - **Secrets in state:** the `env` value lands in `terraform.tfstate` in plaintext.

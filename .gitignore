@@ -1,0 +1,15 @@
+*.pdf
+.env
+*.tfstate
+.terraform/
+*.tfvars
+*.tfstate.*
+crash.log
+override.tf.*
+*.pem
+*.key
+*.ptx
+
+# Local app-repo clone created by deploy.sh, and generated plan files
+cloud-1/
+tfplan

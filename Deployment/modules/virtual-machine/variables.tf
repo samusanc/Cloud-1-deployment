@@ -14,3 +14,7 @@ variable "location" {
 variable "env" {
   type = string
 }
+
+variable "public_ip_address" {
+  type = string
+}

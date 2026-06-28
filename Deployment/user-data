@@ -15,6 +15,13 @@ runcmd:
     #   https://github.com/andresmejiaro/cloud-1
     git clone https://github.com/samusanc/cloud-1 /opt/repo
     echo ${env} | base64 -d > /opt/repo/docker/.env
+    # Override WP_URL with this VM's real public IP (injected by Terraform) so
+    # WordPress builds correct asset/link/comment URLs instead of localhost.
+    if grep -q '^WP_URL=' /opt/repo/docker/.env; then
+      sed -i "s#^WP_URL=.*#WP_URL=https://${public_ip}#" /opt/repo/docker/.env
+    else
+      echo "WP_URL=https://${public_ip}" >> /opt/repo/docker/.env
+    fi
     if [ -f /opt/repo/docker/setup.sh ]; then
       bash /opt/repo/docker/setup.sh
     else

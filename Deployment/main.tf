@@ -38,6 +38,8 @@ module "virtual_machine" {
     resource_group_name = module.resource_group.name
     interface_id = module.network_interface.id
     env = var.env
+    # Inject the VM's own public IP so cloud-init sets WP_URL=https://<ip>
+    public_ip_address = module.public_ip.ip_address
 }
 
 module "NSG" {

@@ -1,4 +1,13 @@
 #cloud-config
+# Allow key-based root SSH login — the eval requires connecting AS root
+# (connecting as a sudo user is treated as cheating). Azure forbids creating
+# the VM with admin_username=root, so we provision as 'adminuser' and copy its
+# authorized key to root in runcmd below.
+disable_root: false
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-permit-root.conf
+    content: |
+      PermitRootLogin prohibit-password
 packages:
   - git
   - docker.io
@@ -6,6 +15,11 @@ packages:
   - ufw
   - openssl
 runcmd:
+  # Enable root login with the same key adminuser received, then reload sshd.
+  - install -d -m 700 /root/.ssh
+  - cp /home/adminuser/.ssh/authorized_keys /root/.ssh/authorized_keys
+  - chmod 600 /root/.ssh/authorized_keys
+  - systemctl restart ssh
   - growpart /dev/sda 1
   - resize2fs /dev/sda1
   - |

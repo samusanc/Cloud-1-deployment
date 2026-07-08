@@ -36,6 +36,20 @@ runcmd:
     else
       echo "WP_URL=https://${public_ip}" >> /opt/repo/docker/.env
     fi
+    # Emergency fallback: if EMERGENCY_USER/PASSWORD are set in the .env, create a
+    # sudo user with that login+password and enable SSH password login, so you can
+    # still get in if the root key ever fails. Root stays key-only. The creds are
+    # then stripped from .env so the containers never receive them.
+    EMERGENCY_USER=$(grep -E '^EMERGENCY_USER=' /opt/repo/docker/.env | cut -d= -f2-)
+    EMERGENCY_PASSWORD=$(grep -E '^EMERGENCY_PASSWORD=' /opt/repo/docker/.env | cut -d= -f2-)
+    if [ -n "$EMERGENCY_USER" ] && [ -n "$EMERGENCY_PASSWORD" ]; then
+      id "$EMERGENCY_USER" >/dev/null 2>&1 || useradd -m -s /bin/bash "$EMERGENCY_USER"
+      usermod -aG sudo "$EMERGENCY_USER"
+      echo "$EMERGENCY_USER:$EMERGENCY_PASSWORD" | chpasswd
+      echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/00-emergency-pw.conf
+      systemctl restart ssh
+    fi
+    sed -i '/^EMERGENCY_USER=/d; /^EMERGENCY_PASSWORD=/d' /opt/repo/docker/.env
     if [ -f /opt/repo/docker/setup.sh ]; then
       bash /opt/repo/docker/setup.sh
     else

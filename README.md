@@ -126,9 +126,19 @@ Notes:
 https://<public_ip>          # WordPress
 https://<public_ip>/phpmyadmin/
 
-# SSH (RSA key, admin user is "adminuser")
+# SSH as root (key-based — required by the eval)
+ssh -i ~/.ssh/id_rsa root@<public_ip>
+
+# SSH as the provisioning user (also key-based)
 ssh -i ~/.ssh/id_rsa adminuser@<public_ip>
+
+# Emergency fallback (only if EMERGENCY_USER/PASSWORD were set in .env):
+# a sudo user you log in to with a PASSWORD, in case the key ever fails
+ssh <EMERGENCY_USER>@<public_ip>      # prompts for EMERGENCY_PASSWORD
 ```
+
+Give root the identity the eval expects by putting your 42 login/email in the
+key's comment: `ssh-keygen -t rsa -b 4096 -C "your-login@student.42.fr"`.
 
 The Docker stack can take ~1–2 min after the VM boots (image pulls + DB init).
 

@@ -1,5 +1,5 @@
 resource "azurerm_linux_virtual_machine" "this" {
-  name                = "example-machine"
+  name                = var.name
   resource_group_name = var.resource_group_name
   location            = var.location
   custom_data = base64encode(templatefile("${path.root}/user-data", {

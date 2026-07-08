@@ -1,5 +1,6 @@
-output "public_ip_address" {
-  value = module.virtual_machine.public_ip_address
+output "public_ip_addresses" {
+  description = "Public IP of each deployed server."
+  value       = module.public_ip[*].ip_address
 }
 
 

@@ -3,6 +3,12 @@ variable "location" {
     type = string
 }
 
+variable "vm_count" {
+    type        = number
+    default     = 1
+    description = "How many WordPress servers to deploy in parallel."
+}
+
 variable "env" {
   type = string
 }

@@ -61,6 +61,8 @@ decodes it into the stack's `docker/.env` at boot. For a real cloud deploy, set
 ```hcl
 location      = "spaincentral"
 address_space = ["10.0.0.0/16"]
+# Optional — deploy N servers in parallel in one apply (default 1):
+# vm_count    = 3
 ```
 
 ## Deploy
@@ -187,6 +189,13 @@ Change both to keep them consistent.
   the repo — keep your copy locally (a fresh clone will otherwise prompt).
 - **VM image generation:** if Azure rejects `Standard_B2als_v2` with a Gen1 image,
   change the VM module's `sku` to `22_04-lts-gen2`.
-- **Hardcoded resource names** (`example-machine`, `acceptanceTestPublicIp1`, …):
-  fine for one VM per resource group; template them before scaling.
 - `Deployment/example.wtf` is an unused scratch file and can be deleted.
+
+## Parallel deployment
+
+Set `vm_count` (in `terraform.tfvars` or `-var vm_count=N`) to provision N servers
+in a single `apply`; Terraform creates them concurrently. Each gets its own
+public IP, NIC, and NSG association, with indexed names
+(`cloud-1-vm-<workspace>-<n>`). `terraform output public_ip_addresses` returns the
+list of IPs. Deploying into a separate `terraform workspace` gives an independent
+resource group, so you can also run fully isolated stacks side by side.

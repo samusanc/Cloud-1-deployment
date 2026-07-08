@@ -36,18 +36,20 @@ runcmd:
     else
       echo "WP_URL=https://${public_ip}" >> /opt/repo/docker/.env
     fi
-    # Emergency fallback: if EMERGENCY_USER/PASSWORD are set in the .env, create a
-    # sudo user with that login+password and enable SSH password login, so you can
-    # still get in if the root key ever fails. Root stays key-only. The creds are
-    # then stripped from .env so the containers never receive them.
+    # Emergency fallback: if EMERGENCY_USER is set in the .env, create a sudo user
+    # that logs in with the SAME SSH key as root (no password — password auth stays
+    # OFF, so security is unchanged). A named break-glass account in case the root
+    # login path misbehaves. The line is stripped from .env afterwards.
     EMERGENCY_USER=$(grep -E '^EMERGENCY_USER=' /opt/repo/docker/.env | cut -d= -f2-)
-    EMERGENCY_PASSWORD=$(grep -E '^EMERGENCY_PASSWORD=' /opt/repo/docker/.env | cut -d= -f2-)
-    if [ -n "$EMERGENCY_USER" ] && [ -n "$EMERGENCY_PASSWORD" ]; then
+    if [ -n "$EMERGENCY_USER" ]; then
       id "$EMERGENCY_USER" >/dev/null 2>&1 || useradd -m -s /bin/bash "$EMERGENCY_USER"
       usermod -aG sudo "$EMERGENCY_USER"
-      echo "$EMERGENCY_USER:$EMERGENCY_PASSWORD" | chpasswd
-      echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/00-emergency-pw.conf
-      systemctl restart ssh
+      install -d -m 700 -o "$EMERGENCY_USER" -g "$EMERGENCY_USER" /home/"$EMERGENCY_USER"/.ssh
+      cp /home/adminuser/.ssh/authorized_keys /home/"$EMERGENCY_USER"/.ssh/authorized_keys
+      chown "$EMERGENCY_USER":"$EMERGENCY_USER" /home/"$EMERGENCY_USER"/.ssh/authorized_keys
+      chmod 600 /home/"$EMERGENCY_USER"/.ssh/authorized_keys
+      echo "$EMERGENCY_USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-emergency
+      chmod 440 /etc/sudoers.d/90-emergency
     fi
     sed -i '/^EMERGENCY_USER=/d; /^EMERGENCY_PASSWORD=/d' /opt/repo/docker/.env
     if [ -f /opt/repo/docker/setup.sh ]; then

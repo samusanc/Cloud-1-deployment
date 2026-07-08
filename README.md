@@ -132,9 +132,9 @@ ssh -i ~/.ssh/id_rsa root@<public_ip>
 # SSH as the provisioning user (also key-based)
 ssh -i ~/.ssh/id_rsa adminuser@<public_ip>
 
-# Emergency fallback (only if EMERGENCY_USER/PASSWORD were set in .env):
-# a sudo user you log in to with a PASSWORD, in case the key ever fails
-ssh <EMERGENCY_USER>@<public_ip>      # prompts for EMERGENCY_PASSWORD
+# Emergency fallback (only if EMERGENCY_USER was set in .env):
+# a named sudo user that uses the SAME key as root — a break-glass account
+ssh -i ~/.ssh/id_rsa <EMERGENCY_USER>@<public_ip>
 ```
 
 Give root the identity the eval expects by putting your 42 login/email in the

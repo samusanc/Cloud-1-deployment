@@ -13,6 +13,11 @@ test -f ~/.ssh/id_rsa.pub || ssh-keygen -t rsa -b 4096 -C "your-login@student.42
 bash deploy.sh
 terraform -chdir=Deployment output public_ip_addresses
 
+# ── PARALLEL DEPLOY (2-3 servers) ─────────────────────────
+cd ~/Cloud-1-deployment
+export TF_VAR_vm_count=2        # or 3
+bash deploy.sh
+
 # ── DESTROY ───────────────────────────────────────────────
 terraform -chdir=Deployment destroy
 

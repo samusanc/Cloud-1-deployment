@@ -170,13 +170,13 @@ Documentation and references used while building this project:
 AI (Claude / Claude Code) was used as a coding partner, with every change reviewed,
 tested, and decided on by us:
 
-- **Debugging:** diagnosing a Docker Compose v1/v2 mismatch that broke provisioning, and
-  an nginx location-priority bug that 404'd phpMyAdmin's assets.
+- **Debugging:** general debugging across the deployment.
 - **Terraform:** scaffolding and refactoring the modules, and adding `vm_count`-based
   parallel deployment.
 - **cloud-init:** the root-login setup, public-IP → `WP_URL` injection, and the optional
   emergency user.
-- **Documentation:** drafting this README and the command cheatsheet.
+- **Integration:** wiring together the scripts we developed separately into one automated flow.
+- **Documentation:** drafting this README and the command cheatsheet, and commenting the code.
 
 All architectural decisions — cloud provider (Azure), automation tool (Terraform +
 cloud-init), the two-repo split, and the security model — were made and validated by us.
